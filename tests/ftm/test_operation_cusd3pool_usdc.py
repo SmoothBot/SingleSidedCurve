@@ -7,13 +7,13 @@ import random
 import brownie
 
 
-def test_cusd3pool_cusd(whale, Strategy, strategy_cusd, accounts, cusd3poolyvault, chain, cusd_vault, gov, strategist, interface):
+def test_cusd3pool_usdc(whale, Strategy, strategy_usdc, accounts, cusd3poolyvault, chain, usdc_vault, gov, strategist, interface):
     strategist = gov
-    vault = cusd_vault
+    vault = usdc_vault
     currency = interface.ERC20(vault.token())
     decimals = currency.decimals()
     gov = accounts.at(vault.governance(), force=True)
-    strategy = strategy_cusd
+    strategy = strategy_usdc
 
     yvault = cusd3poolyvault
     #amount = 1000*1e6

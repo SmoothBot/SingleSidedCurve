@@ -106,8 +106,8 @@ contract Strategy is BaseStrategy {
     }
 
     function _findCurveId() internal view returns(int128){
-        if(address(want) == address(0x6B175474E89094C44Da98b954EedeAC495271d0F)) return 1; // DAI
-        if(address(want) == address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48)) return 2; // USDC
+        if(address(want) == address(0x8D11eC38a3EB5E956B052f67Da8Bdc9bef8Abf3E)) return 1; // DAI
+        if(address(want) == address(0x04068DA6C83AFCFA0e13ba15A6696662335D5B75)) return 2; // USDC
         if(address(want) == address(0xdAC17F958D2ee523a2206206994597C13D831ec7)) return 3; // USDT
         if(address(want) == basePool.coins(0)) return 0;
         revert();
@@ -315,7 +315,7 @@ contract Strategy is BaseStrategy {
             basePool.add_liquidity(amounts, maxSlip);
         }
         else{
-            uint256[4] memory amounts;
+            uint256[3] memory amounts;
             amounts[uint256(curveId)] = _wantToInvest;
             depositContract.add_liquidity(address(basePool), amounts, maxSlip);
         }

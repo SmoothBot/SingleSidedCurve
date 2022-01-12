@@ -42,11 +42,12 @@ def usdt(interface):
 
 
 @pytest.fixture
-def whale(accounts, web3, currency, chain, wbtc, cusd):
+def whale(accounts, web3, currency, chain, usdc, cusd):
     network.gas_price("0 gwei")
     network.gas_limit(6700000)
 
     cusdAcc = accounts.at("0x667D9921836BB8e7629B3E0a3a0C6776dB538029", force=True) # geist
+    usdcAcc = accounts.at("0xe578C856933D8e1082740bf7661e379Aa2A30b26", force=True) # geist
 
     #big binance7 wallet
     #acc = accounts.at('0xBE0eB53F46cd790Cd13851d5EFf43D12404d33E8', force=True)
@@ -62,6 +63,7 @@ def whale(accounts, web3, currency, chain, wbtc, cusd):
     # wb = accounts.at('0x3dfd23A6c5E8BbcFc9581d2E864a68feb6a076d3', force=True)
     # wbtc.transfer(acc, wbtc.balanceOf(wb),  {'from': wb})
     cusd.transfer(acc, cusd.balanceOf(cusdAcc),  {'from': cusdAcc})
+    usdc.transfer(acc, usdc.balanceOf(usdcAcc),  {'from': usdcAcc})
     # dai.transfer(acc, hbtc.balanceOf(hbtcAcc),  {'from': hbtcAcc})
 
 
@@ -230,13 +232,23 @@ def cusd_vault(pm, gov, rewards, guardian, cusd):
     yield vault
 
 @pytest.fixture
+def usdc_vault(pm, gov, rewards, guardian, usdc):
+    currency = usdc
+    Vault = pm(config["dependencies"][0]).Vault
+    vault = gov.deploy(Vault)
+    vault.initialize(currency, gov, rewards, "", "", guardian, {"from": gov})
+    vault.setDepositLimit(2 ** 256 - 1, {"from": gov})
+    yield vault
+
+
+@pytest.fixture
 def cusd3CurvePool(interface):
     # yield interface.ICurveFi('0x78D51EB71a62c081550EfcC0a9F9Ea94B2Ef081c') # factory??
     yield interface.ICurveFi('0x96059756980fF6ced0473898d26F0EF828a59820') # pool??
 
 @pytest.fixture
-def depositcusd(interface):
-    yield interface.ICurveFi('0x96059756980fF6ced0473898d26F0EF828a59820') # pool??
+def deposit_contract_cusd3crv(interface):
+    yield interface.ICurveFi('0x78d51eb71a62c081550efcc0a9f9ea94b2ef081c') # pool??
   
 @pytest.fixture
 def cusd3poolyvault(Vault):
@@ -246,8 +258,13 @@ def cusd3poolyvault(Vault):
     
 
 @pytest.fixture
-def strategy_cusd(strategist, Strategy, cusd_vault, cusd3CurvePool, depositcusd, cusd3poolyvault):
-    strategy = strategist.deploy(Strategy, cusd_vault, 500_000*1e18, 3600, 500, cusd3CurvePool, depositcusd, cusd3poolyvault, "ssc_cusd3crv")
+def strategy_cusd(strategist, Strategy, cusd_vault, cusd3CurvePool, deposit_contract_cusd3crv, cusd3poolyvault):
+    strategy = strategist.deploy(Strategy, cusd_vault, 500_000*1e18, 3600, 500, cusd3CurvePool, deposit_contract_cusd3crv, cusd3poolyvault, "ssc_cusd3crv")
+    yield strategy
+
+@pytest.fixture
+def strategy_usdc(strategist, Strategy, usdc_vault, cusd3CurvePool, deposit_contract_cusd3crv, cusd3poolyvault):
+    strategy = strategist.deploy(Strategy, usdc_vault, 500_000*1e18, 3600, 500, cusd3CurvePool, deposit_contract_cusd3crv, cusd3poolyvault, "ssc_cusd3crv_usdc")
     yield strategy
 
 
