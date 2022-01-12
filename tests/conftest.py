@@ -349,7 +349,7 @@ def token(andre, Token):
 @pytest.fixture
 def gov(accounts):
     # yearn multis... I mean YFI governance. I swear!
-    yield accounts.at('0xFEB4acf3df3cDEA7399794D0869ef76A6EfAff52', force=True)
+    yield accounts.at('0x26E03e44ba4F2EeD46c8284c377c37bD46EB5e22', force=True)
 
 
 @pytest.fixture

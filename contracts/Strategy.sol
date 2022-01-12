@@ -29,9 +29,9 @@ contract Strategy is BaseStrategy {
     ICurveFi public depositContract;
     ICrvV3 public curveToken;
 
-    IWETH public constant weth = IWETH(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
-    address public constant uniswapRouter = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
-    address private constant threeCrv = 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490;
+    IWETH public constant weth = IWETH(0x21be370D5312f44cB42ce377BC9b8a0cEF1A4C83); // wftm
+    address public constant uniswapRouter = 0xF491e7B69E4244ad4002BC14e878a34207E38c29; // spooky
+    address private constant twoCrv = 0x27E611FD27b276ACbd5Ffd632E5eAEBEC9761E40;
 
     VaultAPI public yvToken;
     uint256 public lastInvest; // default is 0
@@ -90,7 +90,7 @@ contract Strategy is BaseStrategy {
         require(want_decimals == 0, "Already Initialized");
         depositContract = ICurveFi(_depositContract);
         basePool = ICurveFi(_basePool);
-        require(basePool.coins(1) == threeCrv);
+        require(basePool.coins(1) == twoCrv);
         curveId = _findCurveId();
         if(curveId == 0){
             depositContract = basePool;
@@ -103,8 +103,8 @@ contract Strategy is BaseStrategy {
         yvToken = VaultAPI(_yvToken);
         curveToken = ICrvV3(_basePool);
         _setupStatics();
-
     }
+
     function _findCurveId() internal view returns(int128){
         if(address(want) == address(0x6B175474E89094C44Da98b954EedeAC495271d0F)) return 1; // DAI
         if(address(want) == address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48)) return 2; // USDC
@@ -112,6 +112,7 @@ contract Strategy is BaseStrategy {
         if(address(want) == basePool.coins(0)) return 0;
         revert();
     }
+
     function _setupStatics() internal {
         maxReportDelay = 86400;
         profitFactor = 1e30;
@@ -119,7 +120,7 @@ contract Strategy is BaseStrategy {
         debtThreshold = 1e30;
         withdrawProtection = true;
         want_decimals = IERC20Extended(address(want)).decimals();
-        sscVersion = "v5 factory 3pool";
+        sscVersion = "v5 factory 2pool";
         curveToken.approve(address(yvToken), type(uint256).max);
         if(curveId==0){
             want.safeApprove(address(basePool), type(uint256).max);
