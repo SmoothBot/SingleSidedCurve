@@ -53,6 +53,15 @@ def test_cusd3pool_usdc(whale, Strategy, strategy_usdc, accounts, cusd3poolyvaul
     #genericStateOfVault(vault, currency)
     print(yvault.pricePerShare()/1e6)
 
+
+ 
+    priceBefore = strat_share_price(vault, strategy)
+    vault.withdraw(vault.balanceOf(whale)/2, whale, 20, {"from": whale})
+    priceAfter = strat_share_price(vault, strategy)
+    print('priceBefore {} priceAfter {}'.format(priceBefore, priceAfter))
+    assert pytest.approx(priceBefore, rel=1e-5) == priceAfter
+    assert False
+
     # accrue returns on yvVault lp strat
     ibcrvStrat1 = Contract(yvault.withdrawalQueue(0))
     vGov = accounts.at(yvault.governance(), force=True)
@@ -73,8 +82,8 @@ def test_cusd3pool_usdc(whale, Strategy, strategy_usdc, accounts, cusd3poolyvaul
     chain.sleep(21600)
     chain.mine(1)
  
-    assert False
-    vault.withdraw(vault.balanceOf(whale), whale, 200,{"from": whale})
+    vault.withdraw(vault.balanceOf(whale), whale, 20, {"from": whale})
+
     whale_after = currency.balanceOf(whale)
     profit = (whale_after - whale_before)
     print("profit =", profit/(10 ** (decimals)))
