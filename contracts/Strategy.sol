@@ -92,9 +92,6 @@ contract Strategy is BaseStrategy {
         basePool = ICurveFi(_basePool);
         require(basePool.coins(1) == twoCrv);
         curveId = _findCurveId();
-        if(curveId == 0){
-            depositContract = basePool;
-        }
         maxSingleInvest = _maxSingleInvest;
         minTimePerInvest = _minTimePerInvest;
         slippageProtectionIn = _slippageProtectionIn;
@@ -201,12 +198,11 @@ contract Strategy is BaseStrategy {
             return 0;
         }
 
-        return virtualPriceToWant().mul(tokens).div(1e18);
+        return depositContract.calc_withdraw_one_coin(address(basePool), tokens, curveId);
     }
 
     // we lose some precision here. but it shouldnt matter as we are underestimating
     function virtualPriceToWant() public view returns (uint256) {
-
         uint256 virtualPrice = basePool.get_virtual_price();
 
         if(want_decimals < 18){
@@ -308,7 +304,6 @@ contract Strategy is BaseStrategy {
         uint256 expectedOut = _wantToInvest.mul(1e18).div(virtualPriceToWant());
         uint256 maxSlip = expectedOut.mul(DENOMINATOR.sub(slippageProtectionIn)).div(DENOMINATOR);
 
-        
         if(curveId == 0){
             uint256[2] memory amounts;
             amounts[uint256(curveId)] = _wantToInvest;

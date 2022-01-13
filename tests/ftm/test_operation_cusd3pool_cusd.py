@@ -6,6 +6,12 @@ from useful_methods import genericStateOfStrat,genericStateOfVault
 import random
 import brownie
 
+def strat_share_price(vault, strategy):
+    debt = vault.strategies(strategy)['totalDebt']
+    if (debt == 0):
+        return 1
+    return strategy.estimatedTotalAssets() / debt
+
 
 def test_cusd3pool_cusd(whale, Strategy, strategy_cusd, accounts, cusd3poolyvault, chain, cusd_vault, gov, strategist, interface):
     strategist = gov
@@ -39,9 +45,12 @@ def test_cusd3pool_cusd(whale, Strategy, strategy_cusd, accounts, cusd3poolyvaul
     #v0.3.0
     vault.addStrategy(strategy, 10000, 0, 2**256-1, 1000, {"from": gov})
 
+    print('strat share: {}'.format(strat_share_price(vault, strategy)))
     strategy.setDoHealthCheck(False, {"from": gov})
     strategy.harvest({'from': strategist})
+    print('strat share: {}'.format(strat_share_price(vault, strategy)))
     genericStateOfStrat(strategy, currency, vault)
+    # assert False
     #genericStateOfStrat(strategy, currency, vault)
     #genericStateOfVault(vault, currency)
     print(yvault.pricePerShare()/1e18)
@@ -65,7 +74,7 @@ def test_cusd3pool_cusd(whale, Strategy, strategy_cusd, accounts, cusd3poolyvaul
     genericStateOfVault(vault, currency)
     chain.sleep(21600)
     chain.mine(1)
- 
+    
     vault.withdraw(vault.balanceOf(whale), whale, 200,{"from": whale})
     whale_after = currency.balanceOf(whale)
     profit = (whale_after - whale_before)

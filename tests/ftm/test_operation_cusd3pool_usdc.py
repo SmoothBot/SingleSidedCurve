@@ -6,6 +6,11 @@ from useful_methods import genericStateOfStrat,genericStateOfVault
 import random
 import brownie
 
+def strat_share_price(vault, strategy):
+    debt = vault.strategies(strategy)['totalDebt']
+    if (debt == 0):
+        return 1
+    return strategy.estimatedTotalAssets() / debt
 
 def test_cusd3pool_usdc(whale, Strategy, strategy_usdc, accounts, cusd3poolyvault, chain, usdc_vault, gov, strategist, interface):
     strategist = gov
@@ -28,7 +33,7 @@ def test_cusd3pool_usdc(whale, Strategy, strategy_usdc, accounts, cusd3poolyvaul
     currency.approve(vault, 2 ** 256 - 1, {"from": whale})
     whale_before = currency.balanceOf(whale)
     print(currency.name())
-    print (whale_before/1e18)
+    print (whale_before/1e6)
     whale_deposit = 30_000 * (10 ** (decimals))
     vault.deposit(whale_deposit, {"from": whale})
     vault.setManagementFee(0, {"from": gov})
@@ -39,12 +44,14 @@ def test_cusd3pool_usdc(whale, Strategy, strategy_usdc, accounts, cusd3poolyvaul
     #v0.3.0
     vault.addStrategy(strategy, 10000, 0, 2**256-1, 1000, {"from": gov})
 
+    print('strat share: {}'.format(strat_share_price(vault, strategy)))
     strategy.setDoHealthCheck(False, {"from": gov})
     strategy.harvest({'from': strategist})
+    print('strat share: {}'.format(strat_share_price(vault, strategy)))
     genericStateOfStrat(strategy, currency, vault)
     #genericStateOfStrat(strategy, currency, vault)
     #genericStateOfVault(vault, currency)
-    print(yvault.pricePerShare()/1e18)
+    print(yvault.pricePerShare()/1e6)
 
     # accrue returns on yvVault lp strat
     ibcrvStrat1 = Contract(yvault.withdrawalQueue(0))
@@ -58,7 +65,7 @@ def test_cusd3pool_usdc(whale, Strategy, strategy_usdc, accounts, cusd3poolyvaul
     chain.mine(1)
 
     # now harvest and get the returns in this strat
-    print(yvault.pricePerShare()/1e18)
+    print(yvault.pricePerShare()/1e6)
     strategy.harvest({'from': strategist})
     print(vault.strategies(strategy))
     genericStateOfStrat(strategy, currency, vault)
@@ -66,6 +73,7 @@ def test_cusd3pool_usdc(whale, Strategy, strategy_usdc, accounts, cusd3poolyvaul
     chain.sleep(21600)
     chain.mine(1)
  
+    assert False
     vault.withdraw(vault.balanceOf(whale), whale, 200,{"from": whale})
     whale_after = currency.balanceOf(whale)
     profit = (whale_after - whale_before)
